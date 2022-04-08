@@ -36,6 +36,11 @@ const {
   getProfiles,
 } = require("../controllers/profile");
 
+const {
+  addCategoryProduct,
+  getCategoryProducts,
+} = require("../controllers/categoryproduct");
+
 const { register, login } = require("../controllers/auth");
 
 const { auth } = require("../middlewares/auth");
@@ -59,6 +64,9 @@ router.get("/categories", getCategories);
 router.get("/category/:id", auth, getCategory);
 router.patch("/category/:id", auth, updateCategory);
 router.delete("/category/:id", auth, deleteCategory);
+
+router.post("/categoryproduct",  addCategoryProduct);
+router.get("/categoryproducts", getCategoryProducts);
 
 router.post("/transaction", auth, addTransaction);
 router.get("/transactions", auth, getTransactions);

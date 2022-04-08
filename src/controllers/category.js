@@ -1,4 +1,4 @@
-const { category } = require("../../models");
+const { category, product, categoryProduct } = require("../../models");
 
 exports.addCategory = async (req, res) => {
   try {
@@ -23,6 +23,22 @@ exports.getCategories = async (req, res) => {
       attributes: {
         exclude: ["createdAt", "updatedAt"],
       },
+      include: [
+        {
+          model: product,
+          as: "products",
+          through: {
+            model: categoryProduct,
+            as: "bridge",
+            attributes: {
+              exclude: ["createdAt", "updatedAt"],
+            },
+          },
+          attributes: {
+            exclude: ["createdAt", "updatedAt"],
+          },
+        },
+      ],
     });
 
     res.send({
