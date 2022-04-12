@@ -40,30 +40,6 @@ exports.addProduct = async (req, res) => {
   }
 };
 
-// exports.addProduct = async (req, res) => {
-//   try {
-//     const data = req.body;
-
-//     data.image = req.file.filename;
-//     data.idUser = req.user.id;
-
-//     return res.send(data);
-
-//     await profile.create(req.body);
-
-//     res.send({
-//       status: "success",
-//       message: "Add profile finished",
-//     });
-
-//   } catch (error) {
-//     console.log(error);
-//     res.send({
-//       status: "failed",
-//       message: "Server error",
-//     });
-//   }
-// };
 
 exports.getProducts = async (req, res) => {
   try {
