@@ -2,12 +2,28 @@ const { product, user, transaction, category, categoryProduct } = require("../..
 
 exports.addProduct = async (req, res) => {
   try {
+
+    let { categoryId } = req.body;
+
+    if (categoryId) {
+      categoryId = categoryId.split(",");
+    }
+
     const data = req.body;
 
     data.image = req.file.filename;
     data.idUser = req.user.id;
 
-    const newProduct = await product.create(data);
+    let newProduct = await product.create(data);
+
+    if (categoryId) {
+      const productCategoryData = categoryId.map((item) => {
+        return { idProduct: newProduct.id, idCategory: parseInt(item) };
+      });
+
+      await categoryProduct.bulkCreate(productCategoryData);
+    }
+
     let productData = await product.findOne({
       where: {
         id: newProduct.id,
@@ -15,15 +31,28 @@ exports.addProduct = async (req, res) => {
       include: [
         {
           model: user,
-          as: 'user',
+          as: "user",
           attributes: {
-            exclude: ['createdAt', 'updatedAt', 'password', 'image'],
+            exclude: ["createdAt", "updatedAt", "password", "image"],
           },
         },
-        
+        {
+          model: category,
+          as: "categories",
+          through: {
+            model: categoryProduct,
+            as: "bridge",
+            attributes: {
+              exclude: ["createdAt", "updatedAt"],
+            },
+          },
+          attributes: {
+            exclude: ["createdAt", "updatedAt"],
+          },
+        },
       ],
       attributes: {
-        exclude: ['createdAt', 'updatedAt', 'idUser'],
+        exclude: ["createdAt", "updatedAt", "idUser"],
       },
     });
 
@@ -107,14 +136,54 @@ exports.getProduct = async (req, res) => {
   try {
     const id = req.params.id;
 
-    const data = await product.findOne({
+    let data = await product.findOne({
       where: {
         id,
       },
+      include: [
+        {
+          model: user,
+          as: "user",
+          attributes: {
+            exclude: ["createdAt", "updatedAt", "password"],
+          },
+        },
+
+        {
+          model: transaction,
+          as: "transactions",
+          attributes: {
+            exclude: ["createdAt", "updatedAt", "status"],
+          },
+        },
+
+        {
+          model: category,
+          as: "categories",
+          through: {
+            model: categoryProduct,
+            as: "bridge",
+            attributes: {
+              exclude: ["createdAt", "updatedAt"],
+            },
+          },
+          attributes: {
+            exclude: ["createdAt", "updatedAt"],
+          },
+        },
+      ],
+
       attributes: {
         exclude: ["idUser", "createdAt", "updatedAt"],
       },
     });
+
+    data = JSON.parse(JSON.stringify(data));
+
+    data = {
+      ...data,
+      image: process.env.PATH_FILE + data.image,
+    };
 
     if (!data) {
       return res.send({
@@ -123,6 +192,8 @@ exports.getProduct = async (req, res) => {
         },
       });
     }
+
+
 
     res.send({
       status: "success",
@@ -139,18 +210,42 @@ exports.getProduct = async (req, res) => {
 
 exports.updateProduct = async (req, res) => {
   try {
-    const id = req.params.id;
+    const { id } = req.params;
+    let { categoryId } = req.body;
+    if (categoryId) {
+      categoryId = categoryId.split(",");
+    }
 
-    await product.update(req.body, {
+    const data = {
+      name: req?.body?.name,
+      desc: req?.body.desc,
+      price: req?.body?.price,
+      image: req?.file?.filename,
+      qty: req?.body?.qty,
+      idUser: req?.user?.id,
+    };
+    console.log(req.body);
+    await product.update(data, {
       where: {
         id,
       },
     });
 
+    if (categoryId) {
+      const productCategoryData = categoryId.map((item) => {
+        return { idProduct: newProduct.id, idCategory: parseInt(item) };
+      });
+
+      await categoryProduct.bulkCreate(productCategoryData);
+    }
+
     res.send({
       status: "success",
-      message: `Update product ID: ${id} finished`,
-      data: req.body,
+      data: {
+        id,
+        data,
+        image: req?.file?.filename,
+      },
     });
   } catch (error) {
     console.log(error);
@@ -169,6 +264,12 @@ exports.deleteProduct= async (req, res) => {
     await product.destroy({
       where: {
         id,
+      },
+    });
+
+    await categoryProduct.destroy({
+      where: {
+        idProduct: id,
       },
     });
 

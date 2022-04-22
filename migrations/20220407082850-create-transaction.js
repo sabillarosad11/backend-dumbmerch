@@ -51,6 +51,9 @@ module.exports = {
         defaultValue: Sequelize.fn("now"),
         type: Sequelize.DATE,
       },
+      address: {
+        type: Sequelize.TEXT,
+      },
     });
   },
   async down(queryInterface, Sequelize) {

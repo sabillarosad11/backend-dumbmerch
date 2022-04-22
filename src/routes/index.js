@@ -29,6 +29,7 @@ const {
 const {
   addTransaction,
   getTransactions,
+  notification,
 } = require("../controllers/transaction");
 
 const {
@@ -41,7 +42,7 @@ const {
   getCategoryProducts,
 } = require("../controllers/categoryproduct");
 
-const { register, login } = require("../controllers/auth");
+const { register, login, checkAuth } = require("../controllers/auth");
 
 const { auth } = require("../middlewares/auth");
 const { uploadFile } = require("../middlewares/uploadFile");
@@ -55,8 +56,8 @@ router.delete("/user/:id", deleteUser);
 
 router.post("/product", auth, uploadFile("image"), addProduct);
 router.get("/products", getProducts);
-router.get("/product/:id", auth, getProduct);
-router.patch("/product/:id", auth, updateProduct);
+router.get("/product/:id", getProduct);
+router.patch("/product/:id", uploadFile("image"), updateProduct);
 router.delete("/product/:id", auth, deleteProduct);
 
 router.post("/category", auth, addCategory);
@@ -71,11 +72,14 @@ router.get("/categoryproducts", getCategoryProducts);
 router.post("/transaction", auth, addTransaction);
 router.get("/transactions", auth, getTransactions);
 
+router.post("/notification", notification);
+
 router.post("/profile", addProfile);
 router.get("/profiles", getProfiles);
 
 router.post("/register", register);
 router.post("/login", login);
+router.get("/check-auth", auth, checkAuth);
 
 
 module.exports = router;
